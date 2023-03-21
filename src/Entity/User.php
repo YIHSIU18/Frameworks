@@ -20,21 +20,21 @@ class User
     private ?string $login = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $mot_pass = null;
+    private ?string $password = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable:true)]
     private ?string $address = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable:true)]
     private ?string $codeposte = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable:true)]
     private ?string $ville = null;
 
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(length: 255, nullable:true)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 30)]
+    #[ORM\Column(length: 255, nullable:true)]
     private ?string $prenom = null;
 
     #[ORM\Column]
@@ -65,14 +65,14 @@ class User
         return $this;
     }
 
-    public function getMotPass(): ?string
+    public function getPassword(): ?string
     {
-        return $this->mot_pass;
+        return $this->password;
     }
 
-    public function setMotPass(string $mot_pass): self
+    public function setPassword(string $password): self
     {
-        $this->mot_pass = $mot_pass;
+        $this->password = $password;
 
         return $this;
     }
