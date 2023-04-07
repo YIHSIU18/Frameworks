@@ -11,13 +11,17 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; //Rajout de la définition
 
 #[AsCommand(
     name: 'CreateAdmin',
     description: 'Add a short description for your command',
 )]
 class CreateAdminCommand extends Command
-{   private ManagerRegistry $doctrine;
+{   
+    private UserPasswordHasherInterface $passwordHasher; //Nouvelle propriété
+    private ManagerRegistry $doctrine;
+    
     protected function configure(): void
     {
         /*$this
@@ -31,11 +35,19 @@ class CreateAdminCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        //retrieve the argument value using getArgument()
         $login = $input->getArgument('login');
-        $password = $input->getArgument('password');
         $admin = new User();
         $admin->setLogin($login);
-        $admin->setPassword($password);
+        $password = $input->getArgument('password'); //Récupe2ration du mot de passe
+        $hashedPassword = $this->passwordHasher->hashPassword 
+        (   //cryptage du mot de passe
+            $admin,
+            $password
+
+        );
+        $admin->setPassword($hashedPassword); //Mot de passe mis dans l'instance
+        
         //Récupérer le gestionnaire des entités de doctrine
         $entityManager=$this->doctrine->getManager();
         //Dire à Doctrine de marque l'entité comme "à persister"
@@ -59,16 +71,17 @@ class CreateAdminCommand extends Command
         return Command::SUCCESS;*/
 
         $output->writeln([
-            'Création Administrateur',
+            'User '.$input->getArgument('login').' created',
             '===============',
             '',
         ]);
         return Command::SUCCESS;    
     }
     
-    public function __construct(ManagerRegistry $doctrine)
+    public function __construct(ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
     {
         $this->doctrine = $doctrine;
+        $this->passwordHasher = $passwordHasher; //on lie la propriété de la classe au wire
         parent::__construct();
     }
 

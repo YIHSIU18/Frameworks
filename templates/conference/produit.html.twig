@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{produit.id}}{% endblock %}
+
+{% block body %}
+    <h1>{{produit.id}}</h1>
+    <article>
+    <h2>{{produit.titre}}</h2>
+    <p>{{produit.description}}</p>
+    <small>{{produit.prix}}</small>
+    <small>{{produit.prix|format_currency('EUR', locale='fr')}}</small>
+    </article>
+{% endblock %}

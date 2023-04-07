@@ -6,10 +6,12 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface; //on charge les interface
+use Symfony\Component\Security\Core\User\UserInterface; //On dit que notre classe user implémente ces interfaces
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -147,6 +149,17 @@ class User
         $this->roles = $roles;
 
         return $this;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->login;
+    }
+
+    public function eraseCredentials()
+    {
+        //If you store any temporary, senstitive data on the user, clear it here
+        //$this->plainPassword = null;
     }
 
     /**
