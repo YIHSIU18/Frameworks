@@ -10,6 +10,8 @@
     <p>{{item.description}}</p>
     <small>{{item.prix}}</small>
     <small>{{item.prix|format_currency('EUR', locale='fr')}}</small>
+    <br><br>
+    <a href={{ path('app_commandProduit', {'id':item.id})}}>Commande</a>
     </article>
     {%endfor%}
 {% endblock %}

@@ -5,10 +5,15 @@ namespace App\Controller;
 //Defeniction
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\User;
 use App\Repository\ProduitRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 class ConferenceController extends AbstractController
 {
@@ -53,10 +58,47 @@ class ConferenceController extends AbstractController
     	//On demande à la sécurité de se déloguer
         $this->security->logout();
         //Si tout se passe bien on est renvoyé à la base du site, délogué
-    	return new RedirectResponse('/');
+    	return new RedirectResponse('/login/form');
     }
 
+    #[Route("/user/create", name:"user_create")]
+    public function createUserAction(Request $request): Response
+    {
+        $monObjet = new User(); // ATTENTION mettre VOTRE classe user
+        $form = $this->createFormBuilder($monObjet)
+    	// On ajoute les champs adresse, cp, ville, etc…
+    	->add('login', TextType::class)
+        ->add('password', TextType::class)
+        ->add('address', TextType::class)
+        ->add('codeposte', TextType::class)
+        ->add('ville', TextType::class)
+        ->add('nom', TextType::class)
+        ->add('prenom', TextType::class)
+        ->add('roles', TextType::class)
+	    ->add('save', SubmitType::class, ['label' => 'Sauvegarder'])
+    	->getForm();
+        
+        $form->handleRequest($request); //Charge les informations de la requeste pour voir si le formulaire a été soumis
+        if ($form->isSubmitted() && $form->isValid()) //A ajouter avant le render
+        {
+            $user = $form->getData(); //On récupère l’objet
+            $user->setRoles(['ROLE_USER']); //On force l’utilisateur à être un ROLE_USER normal
+            $em = $this->doctrine->getManager();    
+                    try {
+            $em->persist($user); //La Sauvegarde
+            $em->flush();  	 
+            return new RedirectResponse('/');
+                    } catch (UniqueConstraintViolationException $e){
+                          $form->get('login')->addError(new FormError('Identifiant déjà utilisé')); //Mettre le bon champ identifiant
+                    }
+        }
+            
 
+        return $this->render('conference/createUser.html.twig', array(
+        	'form' => $form->createView(), // on le passe au template
+
+        ));
+    }
 
     #[Route('/', name: 'app_home')]//Annotation qui permet de définir la route
     public function index(): Response
@@ -76,6 +118,40 @@ class ConferenceController extends AbstractController
             'controller_name' => 'ConferenceController',
             'produit' => $produit
         ]);
+    }
+
+    #[Route('/commande/produit/{id}/new', name:'app_commandProduit')]
+    public function commandeProduit(Request $request, ObjectManager $manager,$id):Response
+    {
+        //Récupère le produit par son id
+        $commandeProduit = $this->produitRepository->find(['id'=>$id]);
+        //on crée une commande, avec ce produit et on y met aussi l’utilisateur
+        $commande = new Commande($commandeProduit);
+        $commande->setCommandeProduit($commandeProduit);
+        
+        $form = $this->createForm(CommandeType::class, $commande);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid())
+        {
+            $manager->persist($commande); //save the commande
+            $manager->flush();
+
+            $this->AddFlash
+            (
+                'succes',
+                "Le produit a bien été enregistré!"
+            );
+
+            return new RedirectResponse('/login/form');
+        }
+        
+        return $this->render('conference/commandeProduit.html.twig', [
+            'controller_name' => 'ConferenceController',
+            'form' => $form->createView()
+        ]);
+
+        
     }
 
     #[Route('/commande', name: 'app_commande')]
