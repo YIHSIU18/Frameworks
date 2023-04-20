@@ -41,7 +41,7 @@ class ConferenceController extends AbstractController
          return $this->redirectToRoute('/');   	 
     }
 
-    #[Route('/login/form', name: 'app_login')]
+    #[Route('/login/form', name: 'app_login')] //user: Sammi mot de pass:1234
     public function login(AuthenticationUtils $authenticationUtils): Response 
     {	 
   	    //Récupère l’erreur d’authentification (s’il y en a une)
