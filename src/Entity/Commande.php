@@ -24,6 +24,10 @@ class Commande
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    #[ORM\ManyToOne(inversedBy: 'Commandes')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Produit $produit = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -62,6 +66,17 @@ class Commande
     {
         $this->user = $user;
 
+        return $this;
+    }
+
+    public function getProduit(): ?Produit
+    {
+        return $this->produit;
+    }
+    
+    public function setProduit(?Produit $produit): self
+    {
+        $this->produit = $produit;
         return $this;
     }
 }

@@ -8,12 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\User;
+use App\Entity\Commande;
 use App\Repository\ProduitRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ConferenceController extends AbstractController
 {
@@ -121,37 +123,27 @@ class ConferenceController extends AbstractController
     }
 
     #[Route('/commande/produit/{id}/new', name:'app_commandProduit')]
-    public function commandeProduit(Request $request, ObjectManager $manager,$id):Response
+    public function commandeProduit(Request $request,EntityManagerInterface $em, $id):Response
     {
         //Récupère le produit par son id
         $commandeProduit = $this->produitRepository->find(['id'=>$id]);
         //on crée une commande, avec ce produit et on y met aussi l’utilisateur
-        $commande = new Commande($commandeProduit);
-        $commande->setCommandeProduit($commandeProduit);
+        $commande = new Commande();
+        $commande->setUser($this->security->getUser());
+        $commande->setDate(new \DateTime());
+        $commande->setEtat("en cours");
+        $commande->setProduit($commandeProduit);
         
-        $form = $this->createForm(CommandeType::class, $commande);
-        $form->handleRequest($request);
-
-        if($form->isSubmitted() && $form->isValid())
-        {
-            $manager->persist($commande); //save the commande
-            $manager->flush();
-
-            $this->AddFlash
-            (
-                'succes',
-                "Le produit a bien été enregistré!"
-            );
-
-            return new RedirectResponse('/login/form');
-        }
+        $em->persist($commande); //La Sauvegarde
+        $em->flush();  	 
+    
+        $this->AddFlash
+        (
+            'succes',
+            "Le produit a bien été enregistré!"
+        );        
         
-        return $this->render('conference/commandeProduit.html.twig', [
-            'controller_name' => 'ConferenceController',
-            'form' => $form->createView()
-        ]);
-
-        
+        return $this->index();
     }
 
     #[Route('/commande', name: 'app_commande')]
