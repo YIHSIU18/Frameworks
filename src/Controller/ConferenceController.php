@@ -142,7 +142,7 @@ class ConferenceController extends AbstractController
             'succes',
             "Le produit a bien été enregistré!"
         );        
-        
+        //Redirige la page home
         return $this->index();
     }
 
